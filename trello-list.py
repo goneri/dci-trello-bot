@@ -18,7 +18,7 @@ def get_id_from_url(url):
 
 
 def list_epics_from_card(c):
-    return re.findall('DCI-Epic: (\S+)', c.desc, re.IGNORECASE)
+    return re.findall('Link: (\S+)', c.desc, re.IGNORECASE)
 
 
 def update_epic_list(epics):
@@ -27,7 +27,7 @@ def update_epic_list(epics):
     for epic in epics:
         ce = client.get_card(get_id_from_url(epic))
         # if the epic has itself relationship with some other epics
-        card_epics = re.findall('DCI-Epic: (\S+)', ce.desc, re.IGNORECASE)
+        card_epics = re.findall('Link: (\S+)', ce.desc, re.IGNORECASE)
         description = 'update by DCI Epic bot:\n\n'
         for s in epics[epic]:
             icon = ''
