@@ -3,7 +3,9 @@ from trello import TrelloClient
 
 import os
 import re
-
+import datetime
+import pytz
+import time
 
 client = TrelloClient(
     api_key=os.environ['TRELLO_API_KEY'],
@@ -44,7 +46,6 @@ def update_epic_list(epics):
             description += icon
             description += s.url
             description += '\n'
-            print('"%s","%s",1' % (s.name, ce.name))
         for e in set(card_epics):
             description += 'DCI-Epic: '
             description += e
@@ -52,20 +53,28 @@ def update_epic_list(epics):
         ce.set_description(description)
 
 
-epics = {}
-for l in dci_board.all_lists():
-    if l.closed:
-        continue
-    trello_list = dci_board.get_list(l.id)
-    for c in trello_list.list_cards():
-        if u'[investigation]' in c.name:
-            new_name = c.name.decode().replace(u'[investigation]', u'🔍')
-            c.set_name(new_name)
-        c.list = l
-        for epic in list_epics_from_card(c):
-            epic = epic.rstrip()
-            if epic not in epics:
-                epics[epic] = []
-            epics[epic].append(c)
+def refresh():
+    epics = {}
+    for l in dci_board.all_lists():
+        if l.closed:
+            continue
+        trello_list = dci_board.get_list(l.id)
+        for c in trello_list.list_cards():
+            if u'[investigation]' in c.name:
+                new_name = c.name.decode().replace(u'[investigation]', u'🔍')
+                c.set_name(new_name)
+            c.list = l
+            for epic in list_epics_from_card(c):
+                epic = epic.rstrip()
+                if epic not in epics:
+                    epics[epic] = []
+                epics[epic].append(c)
+    update_epic_list(epics)
 
-update_epic_list(epics)
+
+last_run = datetime.datetime.utcfromtimestamp(0)
+while True:
+    if pytz.utc.localize(last_run) < dci_board.get_last_activity():
+        last_run = datetime.datetime.utcnow()
+        refresh()
+    time.sleep(600)
