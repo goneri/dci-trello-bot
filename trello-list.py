@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from trello import TrelloClient
 
 import os
@@ -57,6 +58,9 @@ for l in dci_board.all_lists():
         continue
     trello_list = dci_board.get_list(l.id)
     for c in trello_list.list_cards():
+        if u'[investigation]' in c.name:
+            new_name = c.name.decode().replace(u'[investigation]', u'🔍')
+            c.set_name(new_name)
         c.list = l
         for epic in list_epics_from_card(c):
             epic = epic.rstrip()
