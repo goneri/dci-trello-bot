@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from trello import TrelloClient
+import trello
 
 import os
 import re
@@ -7,7 +7,7 @@ import datetime
 import pytz
 import time
 
-client = TrelloClient(
+client = trello.TrelloClient(
     api_key=os.environ['TRELLO_API_KEY'],
     api_secret=os.environ['TRELLO_API_SECRET'],
     token=os.environ['TRELLO_TOKEN'],
@@ -55,21 +55,24 @@ def update_epic_list(epics):
 
 def refresh():
     epics = {}
-    for l in dci_board.all_lists():
-        if l.closed:
-            continue
-        trello_list = dci_board.get_list(l.id)
-        for c in trello_list.list_cards():
-            if u'[investigation]' in c.name:
-                new_name = c.name.decode().replace(u'[investigation]', u'🔍')
-                c.set_name(new_name)
-            c.list = l
-            for epic in list_epics_from_card(c):
-                epic = epic.rstrip()
-                if epic not in epics:
-                    epics[epic] = []
-                epics[epic].append(c)
-    update_epic_list(epics)
+    try:
+        for l in dci_board.all_lists():
+            if l.closed:
+                continue
+            trello_list = dci_board.get_list(l.id)
+            for c in trello_list.list_cards():
+                if u'[investigation]' in c.name:
+                    new_name = c.name.decode().replace(u'[investigation]', u'🔍')
+                    c.set_name(new_name)
+                c.list = l
+                for epic in list_epics_from_card(c):
+                    epic = epic.rstrip()
+                    if epic not in epics:
+                        epics[epic] = []
+                    epics[epic].append(c)
+        update_epic_list(epics)
+    except trello.exceptions.ResourceUnavailable:
+        pass
 
 
 last_run = datetime.datetime.utcfromtimestamp(0)
