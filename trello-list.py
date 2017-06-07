@@ -55,32 +55,32 @@ def update_epic_list(epics):
 
 def refresh():
     epics = {}
-    try:
-        for l in dci_board.all_lists():
-            if l.closed:
-                continue
-            trello_list = dci_board.get_list(l.id)
-            for c in trello_list.list_cards():
-                if u'[investigation]' in c.name:
-                    new_name = c.name.decode().replace(u'[investigation]', u'🔍')
-                    c.set_name(new_name)
-                if u'[article]' in c.name:
-                    new_name = c.name.decode().replace(u'[article]', u'📖')
-                    c.set_name(new_name)
-                c.list = l
-                for epic in list_epics_from_card(c):
-                    epic = epic.rstrip()
-                    if epic not in epics:
-                        epics[epic] = []
-                    epics[epic].append(c)
-        update_epic_list(epics)
-    except trello.exceptions.ResourceUnavailable:
-        pass
+    for l in dci_board.all_lists():
+        if l.closed:
+            continue
+        trello_list = dci_board.get_list(l.id)
+        for c in trello_list.list_cards():
+            if u'[investigation]' in c.name:
+                new_name = c.name.decode().replace(u'[investigation]', u'🔍')
+                c.set_name(new_name)
+            if u'[article]' in c.name:
+                new_name = c.name.decode().replace(u'[article]', u'📖')
+                c.set_name(new_name)
+            c.list = l
+            for epic in list_epics_from_card(c):
+                epic = epic.rstrip()
+                if epic not in epics:
+                    epics[epic] = []
+                epics[epic].append(c)
+    update_epic_list(epics)
 
 
 last_run = datetime.datetime.utcfromtimestamp(0)
 while True:
-    if pytz.utc.localize(last_run) < dci_board.get_last_activity():
-        last_run = datetime.datetime.utcnow()
-        refresh()
+    try:
+        if pytz.utc.localize(last_run) < dci_board.get_last_activity():
+            last_run = datetime.datetime.utcnow()
+            refresh()
+    except trello.exceptions.ResourceUnavailable:
+        pass
     time.sleep(600)
