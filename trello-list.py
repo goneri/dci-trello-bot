@@ -64,6 +64,9 @@ def refresh():
                 if u'[investigation]' in c.name:
                     new_name = c.name.decode().replace(u'[investigation]', u'🔍')
                     c.set_name(new_name)
+                if u'[article]' in c.name:
+                    new_name = c.name.decode().replace(u'[article]', u'📖')
+                    c.set_name(new_name)
                 c.list = l
                 for epic in list_epics_from_card(c):
                     epic = epic.rstrip()
