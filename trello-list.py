@@ -7,6 +7,8 @@ import datetime
 import pytz
 import time
 
+import requests.exceptions
+
 client = trello.TrelloClient(
     api_key=os.environ['TRELLO_API_KEY'],
     api_secret=os.environ['TRELLO_API_SECRET'],
@@ -81,6 +83,6 @@ while True:
         if pytz.utc.localize(last_run) < dci_board.get_last_activity():
             last_run = datetime.datetime.utcnow()
             refresh()
-    except trello.exceptions.ResourceUnavailable:
+    except (trello.exceptions.ResourceUnavailable, requests.exceptions.ConnectionError):
         pass
     time.sleep(600)
